@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="fr" data-lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Administration · Qima</title>
+  <link rel="icon" href="assets/icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+  <style>
+    .adm { max-width: 960px; margin: 0 auto; padding: 28px 16px 64px; }
+    .adm h1 { font-size: 28px; margin: 0 0 4px; }
+    .panel { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 20px; margin-top: 16px; }
+    .panel h2 { font-size: 19px; margin: 0 0 4px; }
+    .hint { color: var(--mute); font-size: 14px; margin: 0 0 14px; }
+    .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+    label.f { display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 700; color: var(--mute); flex: 1 1 140px; }
+    input, select, textarea { font: 500 15px 'Manrope', sans-serif; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); width: 100%; }
+    button.b { font: 800 15px 'Manrope', sans-serif; padding: 11px 18px; border-radius: 12px; border: 0; background: var(--green); color: #fff; cursor: pointer; }
+    button.b.alt { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+    button.b:disabled { opacity: .5; cursor: default; }
+    .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+    .tabs button { font: 700 14px 'Manrope', sans-serif; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; }
+    .tabs button.on { background: var(--green); color: #fff; border-color: var(--green); }
+    .msg { margin-top: 12px; padding: 10px 14px; border-radius: 12px; font-size: 14px; display: none; }
+    .msg.ok { display: block; background: #e7f6ec; color: #14532d; }
+    .msg.err { display: block; background: #fdecea; color: #7f1d1d; }
+    table.t { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 12px; }
+    table.t th, table.t td { padding: 8px; border-bottom: 1px solid var(--line); text-align: start; }
+    table.t th { font-size: 12px; text-transform: uppercase; color: var(--mute); }
+    .mono { font-family: 'IBM Plex Mono', monospace; }
+    .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: var(--line); }
+    .pill.applied { background: #dcfce7; color: #14532d; } .pill.pending { background: #fef3c7; color: #78350f; } .pill.revoked { background: #fee2e2; color: #7f1d1d; }
+    .grid2 { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+    .brand { display: grid; grid-template-columns: 1fr 90px 90px; gap: 8px; align-items: center; }
+    .scroll { overflow-x: auto; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <header class="top"><div class="wrap"><a class="brand" href="./"><img src="assets/icon.png" alt="">Qima <span class="q">«قيمة»</span></a><span style="font-weight:700">Administration</span></div></header>
+
+  <main class="adm">
+    <h1>Administration Qima</h1>
+    <p class="hint">Données saisies à la main et accès Pro. Réservé aux administrateurs : chaque action est vérifiée par le serveur.</p>
+
+    <!-- Connexion -->
+    <section class="panel" id="login">
+      <h2>Connexion</h2>
+      <p class="hint">Entrez votre e-mail d’administrateur : vous recevez un lien de connexion qui ramène ici. Avec l’envoi d’e-mails gratuit de Supabase, seuls les e-mails des membres du projet Supabase reçoivent le message.</p>
+      <div class="row">
+        <label class="f">E-mail<input id="email" type="email" autocomplete="email" placeholder="vous@exemple.com"></label>
+        <button class="b" id="sendLink">Recevoir le lien</button>
+      </div>
+      <div class="msg" id="loginMsg"></div>
+    </section>
+
+    <section id="app" hidden>
+      <div class="row" style="justify-content:space-between">
+        <p class="hint" style="margin:0">Connecté : <b id="who"></b></p>
+        <button class="b alt" id="logout">Se déconnecter</button>
+      </div>
+      <div class="msg" id="notAdmin"></div>
+      <div class="tabs" id="tabs">
+        <button data-t="pro" class="on">Accès Pro</button>
+        <button data-t="rev">Révisions & cotations</button>
+        <button data-t="ref">Prix de référence (Tanger)</button>
+      </div>
+
+      <!-- Accès Pro -->
+      <div data-p="pro">
+        <section class="panel">
+          <h2>Donner l’accès Pro</h2>
+          <p class="hint">Par e-mail du compte Google ou Apple de la personne. Si elle n’a pas encore de compte, l’accès s’applique à sa première connexion. Les jours s’ajoutent à un accès en cours.</p>
+          <div class="row">
+            <label class="f" style="flex:2 1 220px">E-mail<input id="proEmail" type="email" placeholder="client@gmail.com"></label>
+            <label class="f">Durée<select id="proDays"><option value="7">7 jours</option><option value="30" selected>30 jours</option><option value="90">3 mois</option><option value="182">6 mois</option><option value="365">1 an</option></select></label>
+            <label class="f" style="flex:2 1 200px">Note (facultatif)<input id="proNote" placeholder="ex. partenaire, chauffeur testeur"></label>
+            <button class="b" id="grant">Donner l’accès</button>
+          </div>
+          <div class="msg" id="proMsg"></div>
+        </section>
+        <section class="panel">
+          <h2>Accès donnés</h2>
+          <div class="scroll"><table class="t"><thead><tr><th>E-mail</th><th>Durée</th><th>État</th><th>Actif jusqu’au</th><th>Note</th><th></th></tr></thead><tbody id="proList"></tbody></table></div>
+        </section>
+      </div>
+
+      <!-- Révisions & cotations -->
+      <div data-p="rev" hidden>
+        <section class="panel">
+          <h2>Calage en cours</h2>
+          <p class="hint">Recalculé chaque soir à partir des cotations EIA et des prix pompe des révisions.</p>
+          <div id="calib" class="mono" style="font-size:14px"></div>
+        </section>
+        <section class="panel">
+          <h2>Prix pompe d’une révision</h2>
+          <p class="hint">Prix moyen affiché dans une ville côtière (Casablanca, Tanger…) le jour de la révision (1er ou 16). Chaque saisie améliore le calage.</p>
+          <div class="row">
+            <label class="f">Date d’effet<input id="revDate" type="date"></label>
+            <label class="f">Gasoil (DH/L)<input id="revG" type="number" step="0.01" min="5" max="30"></label>
+            <label class="f">Essence (DH/L)<input id="revE" type="number" step="0.01" min="5" max="30"></label>
+            <button class="b" id="saveRev">Enregistrer</button>
+          </div>
+          <div class="msg" id="revMsg"></div>
+          <div class="scroll"><table class="t"><thead><tr><th>Révision</th><th>Gasoil</th><th>Essence</th><th>Source</th></tr></thead><tbody id="revList"></tbody></table></div>
+        </section>
+        <section class="panel">
+          <h2>Cotation de contrôle (Rotterdam / ICE Londres)</h2>
+          <p class="hint">Lisez la vraie cotation en $/tonne (TradingView, ICE, presse) et saisissez-la : l’app mesure l’écart avec les prix réellement répercutés au Maroc, pendant 10 jours. Saisie manuelle uniquement.</p>
+          <div class="row">
+            <label class="f">Carburant<select id="ctlFuel"><option value="gasoil">Gasoil (ICE Low Sulphur Gasoil)</option><option value="essence">Essence (Eurobob)</option></select></label>
+            <label class="f">Cotation ($/t)<input id="ctlVal" type="number" step="0.25" min="200" max="3000"></label>
+            <label class="f">Date<input id="ctlDate" type="date"></label>
+            <label class="f" style="flex:2 1 200px">Source<input id="ctlSrc" value="ICE Londres (TradingView)"></label>
+            <button class="b" id="saveCtl">Enregistrer</button>
+          </div>
+          <div class="msg" id="ctlMsg"></div>
+        </section>
+      </div>
+
+      <!-- Prix de référence -->
+      <div data-p="ref" hidden>
+        <section class="panel">
+          <h2>Prix relevés à Tanger, par enseigne</h2>
+          <p class="hint">Les autres villes s’ajustent selon l’éloignement du port, et chaque station affiche un prix probable avec un pourcentage de confiance. Laissez vide une enseigne non relevée.</p>
+          <div class="row" style="margin-bottom:10px"><label class="f" style="max-width:220px">Date du relevé<input id="refDate" type="date"></label></div>
+          <div class="brand" style="font-size:12px;font-weight:700;color:var(--mute)"><span>Enseigne</span><span>Gasoil</span><span>Essence</span></div>
+          <div id="refRows" class="grid2" style="grid-template-columns:1fr"></div>
+          <div class="row" style="margin-top:12px"><button class="b" id="saveRef">Enregistrer les prix</button></div>
+          <div class="msg" id="refMsg"></div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.75.0/dist/umd/supabase.js"></script>
+  <script>
+  (function () {
+    var sb = supabase.createClient('https://hfqawdpjinuetzteonak.supabase.co', 'sb_publishable_S5UokSCltCAVsHm7O0IOsA_pQqcEu1P', { auth: { persistSession: true, detectSessionInUrl: true } });
+    var $ = function (id) { return document.getElementById(id); };
+    var today = new Date().toISOString().slice(0, 10);
+    ['revDate', 'ctlDate', 'refDate'].forEach(function (id) { $(id).value = today; });
+    var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+    var fmtDate = function (iso) { return iso ? new Date(iso).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : '—'; };
+    function say(id, ok, text) { var m = $(id); m.className = 'msg ' + (ok ? 'ok' : 'err'); m.textContent = text; }
+    function errText(e) { var m = (e && (e.message || e.error_description)) || String(e); return m.indexOf('forbidden') >= 0 ? 'Accès refusé : ce compte n’est pas administrateur.' : m; }
+
+    // ----- Connexion par lien e-mail -----
+    $('sendLink').onclick = async function () {
+      var email = $('email').value.trim(); if (!email) return;
+      this.disabled = true;
+      var r = await sb.auth.signInWithOtp({ email: email, options: { emailRedirectTo: location.origin + location.pathname, shouldCreateUser: true } });
+      this.disabled = false;
+      say('loginMsg', !r.error, r.error ? errText(r.error) : 'Lien envoyé à ' + email + '. Ouvrez-le sur cet appareil (vérifiez les spams).');
+    };
+    $('logout').onclick = async function () { await sb.auth.signOut(); location.reload(); };
+
+    // ----- Onglets -----
+    document.querySelectorAll('#tabs button').forEach(function (b) {
+      b.onclick = function () {
+        document.querySelectorAll('#tabs button').forEach(function (x) { x.classList.toggle('on', x === b); });
+        document.querySelectorAll('[data-p]').forEach(function (p) { p.hidden = p.getAttribute('data-p') !== b.getAttribute('data-t'); });
+      };
+    });
+
+    // ----- Accès Pro -----
+    async function loadPro() {
+      var r = await sb.rpc('admin_list_premium');
+      if (r.error) { $('proList').innerHTML = '<tr><td colspan="6">' + esc(errText(r.error)) + '</td></tr>'; return; }
+      var lab = { applied: 'actif', pending: 'en attente', revoked: 'retiré' };
+      $('proList').innerHTML = r.data.length ? r.data.map(function (g) {
+        return '<tr><td>' + esc(g.email) + '</td><td>' + g.days + ' j</td><td><span class="pill ' + g.status + '">' + lab[g.status] + '</span></td><td>' + fmtDate(g.active_until || g.until) + '</td><td>' + esc(g.note) + '</td><td>' +
+          (g.status !== 'revoked' ? '<button class="b alt" data-revoke="' + esc(g.email) + '">Retirer</button>' : '') + '</td></tr>';
+      }).join('') : '<tr><td colspan="6">Aucun accès donné pour l’instant.</td></tr>';
+      document.querySelectorAll('[data-revoke]').forEach(function (b) {
+        b.onclick = async function () {
+          var em = b.getAttribute('data-revoke');
+          if (!confirm('Retirer l’accès Pro donné à ' + em + ' ? Les abonnements payés sur Google Play / App Store ne sont pas touchés.')) return;
+          var r = await sb.rpc('admin_revoke_premium', { p_email: em });
+          say('proMsg', !r.error, r.error ? errText(r.error) : em + ' : ' + r.data); loadPro();
+        };
+      });
+    }
+    $('grant').onclick = async function () {
+      var email = $('proEmail').value.trim(); if (!email) return;
+      this.disabled = true;
+      var r = await sb.rpc('admin_grant_premium', { p_email: email, p_days: Number($('proDays').value), p_note: $('proNote').value || null });
+      this.disabled = false;
+      say('proMsg', !r.error, r.error ? errText(r.error) : email + ' : ' + r.data);
+      if (!r.error) { $('proEmail').value = ''; $('proNote').value = ''; loadPro(); }
+    };
+
+    // ----- Révisions, cotations, calage -----
+    async function loadRev() {
+      var c = await sb.from('market_calibration').select('*');
+      $('calib').innerHTML = (c.data || []).map(function (x) { return '<div><b>' + x.fuel + '</b> · K ' + x.k + ' · ' + esc(x.method) + '<br><span style="color:var(--mute)">' + esc(x.detail) + ' — ' + fmtDate(x.updated_at) + '</span></div>'; }).join('<br>') || 'Pas encore de calage.';
+      var r = await sb.from('pump_revisions').select('*').order('applies_from', { ascending: false }).limit(12);
+      $('revList').innerHTML = (r.data || []).map(function (x) { return '<tr><td>' + x.applies_from + '</td><td class="mono">' + x.gasoil + '</td><td class="mono">' + x.essence + '</td><td>' + esc(x.source) + '</td></tr>'; }).join('');
+    }
+    $('saveRev').onclick = async function () {
+      var g = Number($('revG').value), e = Number($('revE').value);
+      if (!(g >= 5 && g <= 30 && e >= 5 && e <= 30)) return say('revMsg', false, 'Prix entre 5 et 30 DH/L.');
+      var r = await sb.rpc('admin_set_pump_revision', { p_date: $('revDate').value, p_gasoil: g, p_essence: e });
+      say('revMsg', !r.error, r.error ? errText(r.error) : 'Révision enregistrée : le calage sera recalculé ce soir.'); loadRev();
+    };
+    $('saveCtl').onclick = async function () {
+      var v = Number($('ctlVal').value);
+      if (!(v >= 200 && v <= 3000)) return say('ctlMsg', false, 'Cotation entre 200 et 3000 $/t.');
+      var r = await sb.rpc('admin_set_control_quote', { p_fuel: $('ctlFuel').value, p_usd_t: v, p_date: $('ctlDate').value, p_source: $('ctlSrc').value });
+      say('ctlMsg', !r.error, r.error ? errText(r.error) : 'Cotation de contrôle enregistrée : l’écart Maroc ↔ Rotterdam sera affiché ce soir.');
+    };
+
+    // ----- Prix de référence -----
+    var BRANDS = [];
+    async function loadRef() {
+      var b = await sb.from('brands').select('id,name').order('name');
+      BRANDS = (b.data || []).filter(function (x) { return x.id !== 'other'; });
+      var cur = await sb.rpc('current_reference_prices'); var map = {};
+      (cur.data || []).forEach(function (x) { map[x.brand_id + ':' + x.fuel] = x; });
+      $('refRows').innerHTML = BRANDS.map(function (x) {
+        var g = map[x.id + ':gasoil'], e = map[x.id + ':essence'];
+        return '<div class="brand"><span><b>' + esc(x.name) + '</b>' + (g || e ? '<br><span style="font-size:12px;color:var(--mute)">dernier : ' + ((g || e).observed_on) + '</span>' : '') + '</span>' +
+          '<input type="number" step="0.01" min="5" max="30" data-b="' + x.id + '" data-f="g" placeholder="' + (g ? g.price : '—') + '">' +
+          '<input type="number" step="0.01" min="5" max="30" data-b="' + x.id + '" data-f="e" placeholder="' + (e ? e.price : '—') + '"></div>';
+      }).join('');
+    }
+    $('saveRef').onclick = async function () {
+      var n = 0, errs = [];
+      for (var i = 0; i < BRANDS.length; i++) {
+        var id = BRANDS[i].id;
+        var g = document.querySelector('[data-b="' + id + '"][data-f="g"]').value, e = document.querySelector('[data-b="' + id + '"][data-f="e"]').value;
+        if (!g && !e) continue;
+        var r = await sb.rpc('admin_set_reference_price', { p_city: 'tanger', p_brand: id, p_gasoil: g ? Number(g) : null, p_essence: e ? Number(e) : null, p_date: $('refDate').value });
+        if (r.error) errs.push(BRANDS[i].name + ' : ' + errText(r.error)); else n++;
+      }
+      say('refMsg', !errs.length, errs.length ? errs.join(' · ') : n + ' enseigne(s) enregistrée(s) : toutes les stations sont mises à jour.');
+      loadRef();
+    };
+
+    // ----- Démarrage -----
+    async function start(session) {
+      if (!session) { $('login').hidden = false; $('app').hidden = true; return; }
+      $('login').hidden = true; $('app').hidden = false; $('who').textContent = session.user.email;
+      var a = await sb.rpc('am_i_admin');
+      if (!a.data) { say('notAdmin', false, 'Ce compte n’est pas administrateur. Demandez à ce qu’il soit ajouté à la liste des admins, puis rechargez la page.'); $('tabs').hidden = true; document.querySelectorAll('[data-p]').forEach(function (p) { p.hidden = true; }); return; }
+      loadPro(); loadRev(); loadRef();
+    }
+    sb.auth.onAuthStateChange(function (_e, session) { start(session); });
+    sb.auth.getSession().then(function (r) { start(r.data.session); });
+  })();
+  </script>
+</body>
+</html>
