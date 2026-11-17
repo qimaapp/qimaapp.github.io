@@ -65,13 +65,172 @@
       </div>
       <div class="msg" id="notAdmin"></div>
       <div class="tabs" id="tabs">
-        <button data-t="pro" class="on">Accès Pro</button>
+        <button data-t="health" class="on">Santé</button>
+        <button data-t="acc">Précision</button>
         <button data-t="rev">Révisions & cotations</button>
-        <button data-t="ref">Prix de référence (Tanger)</button>
+        <button data-t="ann">Annonces</button>
+        <button data-t="mod">Modération</button>
+        <button data-t="stats">Statistiques</button>
+        <button data-t="pts">Points</button>
+        <button data-t="promo">Promotions</button>
+        <button data-t="cities">Villes</button>
+        <button data-t="fees">Taxes & frais</button>
+        <button data-t="pro">Accès Pro</button>
+        <button data-t="ref">Prix de référence</button>
+        <button data-t="log">Journal & export</button>
+      </div>
+
+      <!-- 1. Santé des données -->
+      <div data-p="health">
+        <section class="panel">
+          <h2>Santé des données</h2>
+          <p class="hint">Mise à jour des cotations : une fois par jour après la clôture (premier utilisateur après 18:00 UTC, sinon la tâche de 18:30). Quota OilPriceAPI gratuit : 50 requêtes par jour.</p>
+          <div id="healthBox" class="grid2"></div>
+          <div class="row" style="margin-top:12px"><button class="b" id="forceRun">Relancer le calcul maintenant</button></div>
+          <div class="msg" id="healthMsg"></div>
+          <div class="scroll"><table class="t"><thead><tr><th>Quand</th><th>Déclencheur</th><th>OK</th><th>OilPriceAPI</th><th>Erreurs</th></tr></thead><tbody id="runList"></tbody></table></div>
+        </section>
+      </div>
+
+      <!-- 2. Précision -->
+      <div data-p="acc" hidden>
+        <section class="panel">
+          <h2>Précision des estimations</h2>
+          <p class="hint">Dernière estimation faite avant chaque révision, comparée au prix réellement appliqué (saisi dans « Révisions »). Les lignes « étude » viennent de la validation du modèle sur l’historique, sans connaître le résultat.</p>
+          <div id="accSummary" class="grid2"></div>
+          <div class="scroll"><table class="t"><thead><tr><th>Révision</th><th>Carburant</th><th>Estimé</th><th>Réel</th><th>Écart</th><th></th><th>Source</th></tr></thead><tbody id="accList"></tbody></table></div>
+        </section>
+      </div>
+
+      <!-- 3b. Annonces -->
+      <div data-p="ann" hidden>
+        <section class="panel">
+          <h2>Envoyer une annonce</h2>
+          <p class="hint">Notification sur les téléphones qui l’acceptent, en français ou en arabe selon la langue du téléphone. Avec modération : 3 annonces « info » maximum par 24 h. Nécessite la version de l’app avec Firebase.</p>
+          <div class="row">
+            <label class="f">Type<select id="annKind"><option value="info">Info</option><option value="revision">Révision des prix</option><option value="shortage">Rupture de carburant</option></select></label>
+            <label class="f">Ville<select id="annCity"><option value="">Tout le Maroc</option></select></label>
+          </div>
+          <div class="row" style="margin-top:10px">
+            <label class="f">Titre (français)<input id="annTf" maxlength="60"></label>
+            <label class="f">Titre (arabe)<input id="annTa" maxlength="60" dir="rtl"></label>
+          </div>
+          <div class="row" style="margin-top:10px">
+            <label class="f">Texte (français)<textarea id="annBf" maxlength="200" rows="3"></textarea></label>
+            <label class="f">Texte (arabe)<textarea id="annBa" maxlength="200" rows="3" dir="rtl"></textarea></label>
+          </div>
+          <div class="row" style="margin-top:10px"><button class="b alt" id="annDry">Combien de téléphones ?</button><button class="b" id="annSend">Envoyer</button></div>
+          <div class="msg" id="annMsg"></div>
+        </section>
+        <section class="panel">
+          <h2>Annonces envoyées</h2>
+          <div class="scroll"><table class="t"><thead><tr><th>Quand</th><th>Type</th><th>Ville</th><th>Titre</th><th>Envoyées</th></tr></thead><tbody id="annList"></tbody></table></div>
+        </section>
+      </div>
+
+      <!-- 4. Modération -->
+      <div data-p="mod" hidden>
+        <section class="panel">
+          <h2>Messages et avis à valider</h2>
+          <div class="scroll"><table class="t"><thead><tr><th>Type</th><th>Ville / station</th><th>Auteur</th><th>Texte</th><th>Signalé</th><th></th></tr></thead><tbody id="modList"></tbody></table></div>
+          <div class="msg" id="modMsg"></div>
+        </section>
+        <section class="panel">
+          <h2>Derniers prix signalés</h2>
+          <p class="hint">Rejeter un prix faux le retire des stations.</p>
+          <div class="scroll"><table class="t"><thead><tr><th>Quand</th><th>Station</th><th>Carburant</th><th>Prix</th><th>Auteur</th><th>👍/👎</th><th>État</th><th></th></tr></thead><tbody id="repList"></tbody></table></div>
+        </section>
+      </div>
+
+      <!-- 7. Statistiques -->
+      <div data-p="stats" hidden>
+        <section class="panel">
+          <h2>Statistiques</h2>
+          <div id="statBox" class="grid2"></div>
+          <h3 style="margin:18px 0 6px">Utilisateurs par jour (30 jours)</h3>
+          <div id="dauChart"></div>
+          <h3 style="margin:18px 0 6px">Prix signalés par jour</h3>
+          <div id="repChart"></div>
+          <h3 style="margin:18px 0 6px">Villes les plus actives (30 jours)</h3>
+          <div class="scroll"><table class="t"><tbody id="cityStats"></tbody></table></div>
+        </section>
+      </div>
+
+      <!-- 8. Points -->
+      <div data-p="pts" hidden>
+        <section class="panel">
+          <h2>Ajuster des points</h2>
+          <div class="row">
+            <label class="f" style="flex:2 1 220px">E-mail<input id="ptEmail" type="email"></label>
+            <label class="f">Points (+ ou −)<input id="ptDelta" type="number" step="1"></label>
+            <label class="f" style="flex:2 1 200px">Motif<input id="ptNote" placeholder="ex. concours, correction"></label>
+            <button class="b" id="ptSave">Appliquer</button>
+          </div>
+          <div class="msg" id="ptMsg"></div>
+        </section>
+        <section class="panel">
+          <h2>Meilleurs contributeurs</h2>
+          <div class="scroll"><table class="t"><thead><tr><th>E-mail</th><th>Solde</th><th>Signalements (30 j)</th></tr></thead><tbody id="ptTop"></tbody></table></div>
+        </section>
+        <section class="panel">
+          <h2>À vérifier</h2>
+          <p class="hint">Plus de 5 signalements le même jour, ou signalement à plus de 300 m de la station.</p>
+          <div class="scroll"><table class="t"><thead><tr><th>E-mail</th><th>Jour</th><th>Signalements</th><th>Distance max</th></tr></thead><tbody id="ptSus"></tbody></table></div>
+        </section>
+      </div>
+
+      <!-- 9. Promotions -->
+      <div data-p="promo" hidden>
+        <section class="panel">
+          <h2>Fiches promotionnelles des stations</h2>
+          <p class="hint">« À valider » d’abord. Une fiche acceptée attend le paiement du gérant dans l’app avant d’être visible.</p>
+          <div class="scroll"><table class="t"><thead><tr><th>Station</th><th>Commerce</th><th>Offre</th><th>Gérant</th><th>État</th><th></th></tr></thead><tbody id="promoList"></tbody></table></div>
+          <div class="msg" id="promoMsg"></div>
+        </section>
+      </div>
+
+      <!-- 6. Villes -->
+      <div data-p="cities" hidden>
+        <section class="panel">
+          <h2>Surcoût logistique par ville</h2>
+          <p class="hint">Ajouté au prix de la ville côtière (DH/L, de 0 à 0,60). Estimé selon la distance au port ; corrigez-le si un utilisateur signale un écart. Lu par l’app à chaque ouverture.</p>
+          <div class="row"><label class="f" style="max-width:300px">Rechercher<input id="citySearch" placeholder="Fès, Errachidia…"></label></div>
+          <div class="scroll"><table class="t"><thead><tr><th>Ville</th><th>Surcoût (DH/L)</th><th></th></tr></thead><tbody id="cityList"></tbody></table></div>
+          <div class="msg" id="cityMsg"></div>
+        </section>
+      </div>
+
+      <!-- 5. Taxes & frais -->
+      <div data-p="fees" hidden>
+        <section class="panel">
+          <h2>Taxes et frais</h2>
+          <p class="hint">À changer seulement si la loi de finances les modifie. Pris en compte par l’app à la prochaine ouverture et par le calcul du soir.</p>
+          <div class="row">
+            <label class="f">TIC gasoil (DH/L)<input id="feeTg" type="number" step="0.01"></label>
+            <label class="f">TIC essence (DH/L)<input id="feeTe" type="number" step="0.01"></label>
+            <label class="f">TVA (ex. 0,10)<input id="feeVat" type="number" step="0.01"></label>
+            <label class="f">Port & stockage (DH/L)<input id="feePort" type="number" step="0.01"></label>
+            <button class="b" id="feeSave">Enregistrer</button>
+          </div>
+          <div class="msg" id="feeMsg"></div>
+        </section>
+      </div>
+
+      <!-- 11-12. Journal & export -->
+      <div data-p="log" hidden>
+        <section class="panel">
+          <h2>Export CSV</h2>
+          <p class="hint">Les journées VTC et les carnets restent sur les téléphones : ils ne sont pas exportables.</p>
+          <div class="row"><button class="b alt" id="expRev">Révisions</button><button class="b alt" id="expQuotes">Cotations (120 jours)</button><button class="b alt" id="expAcc">Précision</button></div>
+        </section>
+        <section class="panel">
+          <h2>Journal des actions admin</h2>
+          <div class="scroll"><table class="t"><thead><tr><th>Quand</th><th>Admin</th><th>Action</th><th>Détail</th></tr></thead><tbody id="logList"></tbody></table></div>
+        </section>
       </div>
 
       <!-- Accès Pro -->
-      <div data-p="pro">
+      <div data-p="pro" hidden>
         <section class="panel">
           <h2>Donner l’accès Pro</h2>
           <p class="hint">Par e-mail du compte Google ou Apple de la personne. Si elle n’a pas encore de compte, l’accès s’applique à sa première connexion. Les jours s’ajoutent à un accès en cours.</p>
@@ -103,6 +262,7 @@
             <label class="f">Date d’effet<input id="revDate" type="date"></label>
             <label class="f">Gasoil (DH/L)<input id="revG" type="number" step="0.01" min="5" max="30"></label>
             <label class="f">Essence (DH/L)<input id="revE" type="number" step="0.01" min="5" max="30"></label>
+            <label class="f" style="flex-direction:row;align-items:center;gap:8px;flex:0 1 auto"><input id="revNotify" type="checkbox" style="width:auto"> Prévenir les utilisateurs</label>
             <button class="b" id="saveRev">Enregistrer</button>
           </div>
           <div class="msg" id="revMsg"></div>
@@ -206,6 +366,15 @@
       if (!(g >= 5 && g <= 30 && e >= 5 && e <= 30)) return say('revMsg', false, 'Prix entre 5 et 30 DH/L.');
       var r = await sb.rpc('admin_set_pump_revision', { p_date: $('revDate').value, p_gasoil: g, p_essence: e });
       say('revMsg', !r.error, r.error ? errText(r.error) : 'Révision enregistrée : le calage sera recalculé ce soir.'); loadRev();
+      if (!r.error && $('revNotify').checked) {
+        var prev = await sb.from('pump_revisions').select('applies_from,gasoil,essence').lt('applies_from', $('revDate').value).order('applies_from', { ascending: false }).limit(1);
+        var p = (prev.data || [])[0], fmt = function (v, o) { if (!o) return v.toFixed(2); var d = v - o; return v.toFixed(2) + ' (' + (d > 0 ? '+' : '') + d.toFixed(2) + ')'; };
+        var dd = $('revDate').value.slice(8, 10) + '/' + $('revDate').value.slice(5, 7);
+        try {
+          var j = await callFn('admin-announce', { kind: 'revision', title_fr: 'Nouveaux prix au ' + dd, body_fr: 'Gasoil ' + fmt(g, p && Number(p.gasoil)) + ' DH/L · Essence ' + fmt(e, p && Number(p.essence)) + ' DH/L (prix moyens, ville côtière).', title_ar: 'أثمنة جديدة ' + dd, body_ar: 'المازوط ' + fmt(g, p && Number(p.gasoil)) + ' درهم/ل · البنزين ' + fmt(e, p && Number(p.essence)) + ' درهم/ل (معدل المدن الساحلية).' });
+          say('revMsg', true, 'Révision enregistrée et annoncée à ' + j.sent + ' téléphone(s).'); loadAnn();
+        } catch (x) { say('revMsg', false, 'Révision enregistrée, mais annonce non envoyée : ' + errText(x)); }
+      }
     };
     $('saveCtl').onclick = async function () {
       var v = Number($('ctlVal').value);
@@ -241,13 +410,188 @@
       loadRef();
     };
 
+    // ----- Outils communs -----
+    var FN = 'https://hfqawdpjinuetzteonak.supabase.co/functions/v1/';
+    async function callFn(name, body, query) {
+      var s = (await sb.auth.getSession()).data.session;
+      var r = await fetch(FN + name + (query || ''), { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: 'sb_publishable_S5UokSCltCAVsHm7O0IOsA_pQqcEu1P', Authorization: 'Bearer ' + (s ? s.access_token : '') }, body: JSON.stringify(body || {}) });
+      var j = {}; try { j = await r.json(); } catch (e) {}
+      if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+      return j;
+    }
+    function tile(label, value, sub) { return '<div class="panel" style="margin:0;padding:14px"><div style="font-size:12px;color:var(--mute);font-weight:700">' + esc(label) + '</div><div style="font-size:24px;font-weight:800">' + esc(value) + '</div>' + (sub ? '<div style="font-size:12px;color:var(--mute)">' + esc(sub) + '</div>' : '') + '</div>'; }
+    function bars(rows, key, val) {
+      if (!rows.length) return '<p class="hint">Pas encore de données.</p>';
+      var max = Math.max.apply(null, rows.map(function (r) { return Number(r[val]) || 0; }).concat([1]));
+      return '<div style="display:flex;align-items:flex-end;gap:3px;height:120px;border-bottom:1px solid var(--line)">' + rows.map(function (r) {
+        return '<div title="' + esc(r[key] + ' : ' + r[val]) + '" style="flex:1;background:var(--green);border-radius:4px 4px 0 0;height:' + Math.max(2, (Number(r[val]) / max) * 100) + '%"></div>';
+      }).join('') + '</div><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--mute)"><span>' + esc(rows[0][key]) + '</span><span>' + esc(rows[rows.length - 1][key]) + '</span></div>';
+    }
+    function csv(name, rows) {
+      if (!rows || !rows.length) return alert('Rien à exporter.');
+      var cols = Object.keys(rows[0]);
+      var txt = '﻿' + cols.join(';') + '\n' + rows.map(function (r) { return cols.map(function (c) { var v = r[c] == null ? '' : typeof r[c] === 'object' ? JSON.stringify(r[c]) : String(r[c]); return /[;"\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(';'); }).join('\n');
+      var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], { type: 'text/csv;charset=utf-8' })); a.download = name + '-' + today + '.csv'; a.click();
+    }
+    var CITIES = [];
+    fetch('data-cities.json').then(function (r) { return r.json(); }).then(function (c) {
+      CITIES = c; $('annCity').innerHTML = '<option value="">Tout le Maroc</option>' + c.map(function (x) { return '<option value="' + x.id + '">' + esc(x.fr) + '</option>'; }).join('');
+    }).catch(function () {});
+    var cityName = function (id) { var c = CITIES.filter(function (x) { return x.id === id; })[0]; return c ? c.fr : (id || '—'); };
+
+    // ----- 1. Santé -----
+    async function loadHealth() {
+      var r = await sb.rpc('admin_health'); if (r.error) return say('healthMsg', false, errText(r.error));
+      var h = r.data, q = h.last_quotes || {}, last = (h.last_runs || [])[0];
+      $('healthBox').innerHTML = tile('Dernier calcul', last ? fmtDate(last.at) : '—', last ? (last.ok ? '✓ sans erreur' : '✗ ' + (last.errors || []).join(' · ')) : 'aucun passage journalisé') +
+        tile('OilPriceAPI aujourd’hui', h.oil_today + ' / ' + h.oil_limit, 'requêtes (UTC)') +
+        tile('Gasoil ICE', q.PLATTS_GASOIL || '—', 'dernière cotation') + tile('Essence (EIA)', q.PLATTS_ESSENCE || '—', 'dernière cotation') +
+        tile('Dollar', q.USD_MAD || '—', 'dernier taux') + tile('Or', q.XAU_USD || '—', 'dernier cours');
+      $('runList').innerHTML = (h.last_runs || []).map(function (x) { return '<tr><td>' + fmtDate(x.at) + '</td><td>' + esc(x.trigger) + '</td><td>' + (x.ok ? '✓' : '✗') + '</td><td>' + x.oil_requests + '</td><td>' + esc((x.errors || []).join(' · ')) + '</td></tr>'; }).join('') || '<tr><td colspan="5">Aucun passage journalisé.</td></tr>';
+    }
+    $('forceRun').onclick = async function () {
+      if (!confirm('Relancer le calcul maintenant ? Cela utilise 1 requête OilPriceAPI (sur 50 par jour).')) return;
+      this.disabled = true;
+      try { var j = await callFn('ingest-market', {}, '?force=1'); say('healthMsg', !(j.errors || []).length, (j.errors || []).length ? 'Terminé avec erreurs : ' + j.errors.join(' · ') : 'Calcul relancé : cotations et estimations à jour.'); }
+      catch (e) { say('healthMsg', false, errText(e)); }
+      this.disabled = false; loadHealth(); loadAcc();
+    };
+
+    // ----- 2. Précision -----
+    var ACC = [];
+    async function loadAcc() {
+      var r = await sb.rpc('admin_accuracy'); if (r.error) return;
+      ACC = r.data || [];
+      var done = ACC.filter(function (x) { return x.actual != null; });
+      ['gasoil', 'essence'].forEach(function () {});
+      var stat = function (fuel) {
+        var d = done.filter(function (x) { return x.fuel === fuel; }).slice(0, 6);
+        if (!d.length) return tile(fuel, '—', 'pas encore de révision comparée');
+        var mae = d.reduce(function (s, x) { return s + Math.abs(Number(x.gap)); }, 0) / d.length;
+        return tile(fuel === 'gasoil' ? 'Gasoil' : 'Essence', '± ' + mae.toFixed(2) + ' DH', 'écart moyen, ' + d.length + ' dernières révisions');
+      };
+      $('accSummary').innerHTML = stat('gasoil') + stat('essence');
+      $('accList').innerHTML = ACC.map(function (x) {
+        var g = x.gap == null ? null : Number(x.gap), c = g == null ? '' : Math.abs(g) <= 0.3 ? '#15803d' : Math.abs(g) <= 0.6 ? '#b45309' : '#b91c1c';
+        return '<tr><td>' + x.applies_from + '</td><td>' + x.fuel + '</td><td class="mono">' + x.estimate + '</td><td class="mono">' + (x.actual == null ? 'à venir' : x.actual) + '</td><td class="mono" style="color:' + c + ';font-weight:700">' + (g == null ? '' : (g > 0 ? '+' : '') + g.toFixed(2)) + '</td><td>' + (x.points ? x.points + ' j' : '') + '</td><td style="font-size:12px;color:var(--mute)">' + esc(x.source) + '</td></tr>';
+      }).join('') || '<tr><td colspan="7">Aucune estimation enregistrée.</td></tr>';
+    }
+
+    // ----- 3b. Annonces -----
+    function annBody() { return { kind: $('annKind').value, city_id: $('annCity').value || null, title_fr: $('annTf').value, body_fr: $('annBf').value, title_ar: $('annTa').value, body_ar: $('annBa').value }; }
+    $('annDry').onclick = async function () { try { var b = annBody(); b.dry_run = true; if (!b.title_fr) b.title_fr = b.body_fr = '-'; var j = await callFn('admin-announce', b); say('annMsg', true, j.would_send + ' téléphone(s) recevraient cette annonce.'); } catch (e) { say('annMsg', false, errText(e)); } };
+    $('annSend').onclick = async function () {
+      var b = annBody(); if (!b.title_fr || !b.body_fr) return say('annMsg', false, 'Titre et texte en français obligatoires.');
+      if (!confirm('Envoyer cette annonce à ' + (b.city_id ? cityName(b.city_id) : 'tout le Maroc') + ' ?')) return;
+      this.disabled = true;
+      try { var j = await callFn('admin-announce', b); say('annMsg', true, 'Envoyée à ' + j.sent + ' téléphone(s).'); loadAnn(); } catch (e) { say('annMsg', false, errText(e)); }
+      this.disabled = false;
+    };
+    async function loadAnn() {
+      var r = await sb.rpc('admin_list_announcements'); if (r.error) return;
+      $('annList').innerHTML = (r.data || []).map(function (x) { return '<tr><td>' + fmtDate(x.at) + '</td><td>' + esc(x.kind) + '</td><td>' + esc(x.city_id ? cityName(x.city_id) : 'Maroc') + '</td><td>' + esc(x.title_fr) + '</td><td>' + x.sent + '</td></tr>'; }).join('') || '<tr><td colspan="5">Aucune annonce.</td></tr>';
+    }
+
+    // ----- 4. Modération -----
+    async function loadMod() {
+      var r = await sb.rpc('admin_moderation_queue');
+      $('modList').innerHTML = r.error ? '<tr><td colspan="6">' + esc(errText(r.error)) + '</td></tr>' : (r.data || []).map(function (x) {
+        return '<tr><td>' + (x.kind === 'post' ? 'Message' : 'Avis ' + (x.rating || '') + '★') + '</td><td>' + esc(x.kind === 'post' ? cityName(x.city_or_station) : x.city_or_station) + '</td><td>' + esc(x.author_email) + '</td><td>' + esc(x.body) + '</td><td>' + (x.reports || '') + '</td><td style="white-space:nowrap"><button class="b" data-mod="' + x.kind + '|' + x.id + '|1">Valider</button> <button class="b alt" data-mod="' + x.kind + '|' + x.id + '|0">Refuser</button></td></tr>';
+      }).join('') || '<tr><td colspan="6">Rien à valider. 👍</td></tr>';
+      document.querySelectorAll('[data-mod]').forEach(function (b) {
+        b.onclick = async function () { var p = b.getAttribute('data-mod').split('|'); var r = await sb.rpc('admin_moderate', { p_kind: p[0], p_id: p[1], p_approve: p[2] === '1' }); say('modMsg', !r.error, r.error ? errText(r.error) : 'Fait.'); loadMod(); };
+      });
+      var q = await sb.rpc('admin_recent_reports', { p_limit: 60 });
+      $('repList').innerHTML = (q.data || []).map(function (x) {
+        return '<tr><td>' + fmtDate(x.reported_at) + '</td><td>' + esc(x.station) + '<br><span style="font-size:12px;color:var(--mute)">' + esc(cityName(x.city_id)) + '</span></td><td>' + x.fuel + '</td><td class="mono">' + x.price + '</td><td>' + esc(x.reporter || 'invité') + '</td><td>' + x.upvotes + '/' + x.downvotes + '</td><td>' + esc(x.status) + '</td><td>' + (x.status === 'active' ? '<button class="b alt" data-rej="' + x.id + '">Rejeter</button>' : '') + '</td></tr>';
+      }).join('') || '<tr><td colspan="8">Aucun signalement.</td></tr>';
+      document.querySelectorAll('[data-rej]').forEach(function (b) { b.onclick = async function () { if (!confirm('Rejeter ce prix ?')) return; await sb.rpc('admin_reject_report', { p_id: b.getAttribute('data-rej') }); loadMod(); }; });
+    }
+
+    // ----- 7. Statistiques -----
+    async function loadStats() {
+      var r = await sb.rpc('admin_stats'); if (r.error) return;
+      var s = r.data, dau = s.dau || [], lastD = dau[dau.length - 1];
+      $('statBox').innerHTML = tile('Utilisateurs aujourd’hui', lastD ? lastD.n : 0, lastD ? lastD.acc + ' avec compte' : '') + tile('Comptes Google / Apple', s.accounts) + tile('Sessions invité', s.anonymous) +
+        tile('Premium actifs', s.premium_active, s.pro_grants + ' accès Pro donnés') + tile('Téléphones avec notifications', s.push_tokens) + tile('Messages à valider', s.posts_pending);
+      $('dauChart').innerHTML = bars(dau, 'day', 'n');
+      $('repChart').innerHTML = bars(s.reports_per_day || [], 'day', 'n');
+      $('cityStats').innerHTML = (s.cities || []).map(function (c) { return '<tr><td>' + esc(c.city) + '</td><td class="mono">' + c.n + '</td></tr>'; }).join('') || '<tr><td>Pas encore de données (version de l’app avec statistiques nécessaire).</td></tr>';
+    }
+
+    // ----- 8. Points -----
+    async function loadPts() {
+      var r = await sb.rpc('admin_points_overview'); if (r.error) return;
+      $('ptTop').innerHTML = (r.data.top || []).map(function (x) { return '<tr><td>' + esc(x.email) + '</td><td class="mono">' + x.balance + '</td><td>' + x.reports_30d + '</td></tr>'; }).join('') || '<tr><td colspan="3">Aucun contributeur.</td></tr>';
+      $('ptSus').innerHTML = (r.data.suspicious || []).map(function (x) { return '<tr><td>' + esc(x.email) + '</td><td>' + x.day + '</td><td>' + x.n + '</td><td>' + (x.max_distance == null ? '—' : x.max_distance + ' m') + '</td></tr>'; }).join('') || '<tr><td colspan="4">Rien de suspect. 👍</td></tr>';
+    }
+    $('ptSave').onclick = async function () {
+      var d = parseInt($('ptDelta').value, 10); if (!d) return say('ptMsg', false, 'Indiquez un nombre de points.');
+      var r = await sb.rpc('admin_adjust_points', { p_email: $('ptEmail').value.trim(), p_delta: d, p_note: $('ptNote').value || null });
+      say('ptMsg', !r.error, r.error ? errText(r.error) : 'Fait. Nouveau solde : ' + r.data + ' points.'); loadPts();
+    };
+
+    // ----- 9. Promotions -----
+    async function loadPromo() {
+      var r = await sb.rpc('admin_list_promotions'); if (r.error) return;
+      var lab = { pending_review: 'à valider', approved_unpaid: 'acceptée, non payée', active: 'active', rejected: 'refusée', expired: 'expirée' };
+      $('promoList').innerHTML = (r.data || []).map(function (x) {
+        return '<tr><td>' + esc(x.station) + '<br><span style="font-size:12px;color:var(--mute)">' + esc(cityName(x.city_id)) + '</span></td><td>' + esc(x.business_name) + '</td><td>' + esc(x.offer) + '</td><td>' + esc(x.owner) + '</td><td>' + esc(lab[x.status] || x.status) + (x.paid_until ? '<br><span style="font-size:12px">jusqu’au ' + fmtDate(x.paid_until) + '</span>' : '') + '</td><td style="white-space:nowrap">' +
+          (x.status === 'pending_review' ? '<button class="b" data-pr="' + x.id + '|1">Accepter</button> <button class="b alt" data-pr="' + x.id + '|0">Refuser</button>' : '') + '</td></tr>';
+      }).join('') || '<tr><td colspan="6">Aucune fiche.</td></tr>';
+      document.querySelectorAll('[data-pr]').forEach(function (b) {
+        b.onclick = async function () { var p = b.getAttribute('data-pr').split('|'); var note = p[1] === '0' ? prompt('Motif du refus (visible par le gérant) :') : null; if (p[1] === '0' && note === null) return;
+          var r = await sb.rpc('admin_review_promotion', { p_id: p[0], p_approve: p[1] === '1', p_note: note }); say('promoMsg', !r.error, r.error ? errText(r.error) : 'Fait.'); loadPromo(); };
+      });
+    }
+
+    // ----- 6. Villes -----
+    var DBCITY = {};
+    async function loadCities() {
+      var r = await sb.from('cities').select('id, logistics_supplement'); (r.data || []).forEach(function (c) { DBCITY[c.id] = c.logistics_supplement; });
+      renderCities();
+    }
+    function renderCities() {
+      var q = $('citySearch').value.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+      var list = CITIES.filter(function (c) { return !q || c.fr.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').indexOf(q) >= 0 || c.ar.indexOf(q) >= 0; });
+      $('cityList').innerHTML = list.map(function (c) { var v = DBCITY[c.id] != null ? DBCITY[c.id] : c.s; return '<tr><td>' + esc(c.fr) + ' <span style="color:var(--mute)">' + esc(c.ar) + '</span></td><td style="max-width:120px"><input type="number" step="0.01" min="0" max="0.6" value="' + v + '" data-cv="' + c.id + '"></td><td><button class="b alt" data-cs="' + c.id + '">Enregistrer</button></td></tr>'; }).join('');
+      document.querySelectorAll('[data-cs]').forEach(function (b) {
+        b.onclick = async function () { var id = b.getAttribute('data-cs'), v = Number(document.querySelector('[data-cv="' + id + '"]').value);
+          var r = await sb.rpc('admin_set_city_supplement', { p_city: id, p_value: v }); say('cityMsg', !r.error, r.error ? errText(r.error) : cityName(id) + ' : ' + v.toFixed(2) + ' DH/L enregistré.'); if (!r.error) DBCITY[id] = v; };
+      });
+    }
+    $('citySearch').oninput = renderCities;
+
+    // ----- 5. Taxes & frais -----
+    async function loadFees() {
+      var r = await sb.from('app_config').select('value').eq('key', 'fees').maybeSingle();
+      var f = (r.data && r.data.value) || {};
+      $('feeTg').value = f.tic_gasoil != null ? f.tic_gasoil : 2.42; $('feeTe').value = f.tic_essence != null ? f.tic_essence : 3.76;
+      $('feeVat').value = f.vat != null ? f.vat : 0.1; $('feePort').value = f.port != null ? f.port : 0.25;
+    }
+    $('feeSave').onclick = async function () {
+      var v = { tic_gasoil: Number($('feeTg').value), tic_essence: Number($('feeTe').value), vat: Number($('feeVat').value), port: Number($('feePort').value) };
+      if (!(v.tic_gasoil > 0 && v.tic_gasoil < 10 && v.tic_essence > 0 && v.tic_essence < 10 && v.vat >= 0 && v.vat < 0.5 && v.port >= 0 && v.port < 3)) return say('feeMsg', false, 'Valeurs hors limites.');
+      if (!confirm('Changer les taxes pour tous les utilisateurs ?')) return;
+      var r = await sb.rpc('admin_set_config', { p_key: 'fees', p_value: v }); say('feeMsg', !r.error, r.error ? errText(r.error) : 'Enregistré. Appliqué à la prochaine ouverture de l’app et au calcul de ce soir.');
+    };
+
+    // ----- 11-12. Export & journal -----
+    async function loadLog() {
+      var r = await sb.rpc('admin_list_log', { p_limit: 100 }); if (r.error) return;
+      $('logList').innerHTML = (r.data || []).map(function (x) { return '<tr><td>' + fmtDate(x.at) + '</td><td>' + esc(x.admin) + '</td><td>' + esc(x.action) + '</td><td style="font-size:12px;max-width:420px;overflow-wrap:anywhere" class="mono">' + esc(JSON.stringify(x.detail).slice(0, 220)) + '</td></tr>'; }).join('') || '<tr><td colspan="4">Aucune action.</td></tr>';
+    }
+    $('expRev').onclick = async function () { var r = await sb.from('pump_revisions').select('applies_from,gasoil,essence,source').order('applies_from'); csv('qima-revisions', r.data); };
+    $('expQuotes').onclick = async function () { var r = await sb.rpc('admin_export_quotes', { p_days: 120 }); csv('qima-cotations', r.data); };
+    $('expAcc').onclick = function () { csv('qima-precision', ACC); };
+
     // ----- Démarrage -----
     async function start(session) {
       if (!session) { $('login').hidden = false; $('app').hidden = true; return; }
       $('login').hidden = true; $('app').hidden = false; $('who').textContent = session.user.email;
       var a = await sb.rpc('am_i_admin');
       if (!a.data) { say('notAdmin', false, 'Ce compte n’est pas administrateur. Demandez à ce qu’il soit ajouté à la liste des admins, puis rechargez la page.'); $('tabs').hidden = true; document.querySelectorAll('[data-p]').forEach(function (p) { p.hidden = true; }); return; }
-      loadPro(); loadRev(); loadRef();
+      loadHealth(); loadAcc(); loadPro(); loadRev(); loadRef(); loadAnn(); loadMod(); loadStats(); loadPts(); loadPromo(); loadCities(); loadFees(); loadLog();
     }
     sb.auth.onAuthStateChange(function (_e, session) { start(session); });
     sb.auth.getSession().then(function (r) { start(r.data.session); });
